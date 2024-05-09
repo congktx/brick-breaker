@@ -8,16 +8,18 @@ import javax.imageio.ImageIO;
 
 public class test {
     public static void main(String[] args) {
-        // File imgFile = new File("image/ball.png");
-        // try {
-        // BufferedImage bimg = ImageIO.read(imgFile);
-        // int width = bimg.getWidth();
-        // int height = bimg.getHeight();
-        // System.out.println(width);
-        // System.out.println(height);
-        // } catch (IOException e) {
-        // }
+        readSizeImage("image/item1.png");
+    }
 
-        System.out.println(System.currentTimeMillis());
+    public static void readSizeImage(String path) {
+        File imgFile = new File(path);
+        try {
+            BufferedImage bimg = ImageIO.read(imgFile);
+            int width = bimg.getWidth();
+            int height = bimg.getHeight();
+            System.out.println(width);
+            System.out.println(height);
+        } catch (IOException e) {
+        }
     }
 }
