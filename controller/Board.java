@@ -373,9 +373,4 @@ public class Board extends JPanel {
             bricks[indexBrick].item = i;
         }
     }
-
-    // @Override
-    // public void actionPerformed(ActionEvent e) {
-    //     repaint();
-    // }
 }
