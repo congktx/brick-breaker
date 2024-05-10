@@ -5,15 +5,17 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-
-public class Board extends JFrame implements ActionListener {
+public class Board extends JPanel {
     Timer timer;
+    Dimension screenSize = new Dimension(960, 540);
+    Dimension cursorLocation = new Dimension(0, 0);
 
     Player player = new Player();
 
@@ -23,11 +25,11 @@ public class Board extends JFrame implements ActionListener {
     Brick[] bricks = new Brick[200];
     int numberBrick = 0;
 
-    Item[] items = new Item[10];
+    Item[] items = new Item[8];
+    int numberItem = 0;
 
-    Dimension screenSize = new Dimension(960, 540);
-    Dimension cursorLocation = new Dimension(0, 0);
-
+    int haveGun = 0;
+    int lives = 3;
     int loopMusic = -1;
     int isPause = 1;
 
@@ -38,34 +40,20 @@ public class Board extends JFrame implements ActionListener {
     Clip music;
 
     public Board() {
-        setTitle("Brick Breaker");
-        setVisible(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(screenSize.width, screenSize.height, screenSize.width, screenSize.height);
+        setFocusable(true);
+        setDoubleBuffered(true);
 
+        addKeyListener(new TKeyboardAdapter());
+        addMouseListener(new TMouseAdapter());
+        addMouseMotionListener(new TMouseMotionAdapter());
+        
         getImages();
         getMusic();
         setUpMap1();
         reset();
 
-        timer = new Timer(10, this);
-        timer.start(); 
-
-        addKeyListener(new TKeyboardAdapter());
-        addMouseListener(new TMouseAdapter());
-        addMouseMotionListener(new TMouseMotionAdapter());
-    }
-
-    public void getMusic() {
-        try {
-            File file = new File("sound/sound.wav");
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
-            music = AudioSystem.getClip();
-            music.open(audioStream);
-        } catch (Exception e) {
-            System.out.println("Error with playing sound.");
-            e.printStackTrace();
-        }
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new ScheduleTask(), 0, 12);
     }
 
     public void reset() {
@@ -83,14 +71,35 @@ public class Board extends JFrame implements ActionListener {
         isPause = 1;
     }
 
-    public boolean Death() {
-        return (numberBall == 0);
+    // move objects
+    public void ballMove() {
+        for (int i=0; i<numberBall; i++) {
+            balls[i].x += balls[i].dx;
+            balls[i].y += balls[i].dy;
+        }
     }
 
-    public void BallFall() {
+    public void playerMove() {
+        player.location.width = Math.min(cursorLocation.width, screenSize.width - player.size.width - 10);
+    }
+
+    public void itemMove() {
+        for (int i=0; i<numberItem; i++) {
+            items[i].location.height += 2;
+        }
+    }
+
+    public void moveAll() {
+        playerMove();
+        ballMove();
+        itemMove();
+    }
+
+    // check contact
+    public void BallOut() {
         for (int i=numberBall-1; i>=0; i--) {
-            if (balls[i].y >= screenSize.height) {
-                balls[i] = balls[numberBall-1];
+            if (balls[i].y - balls[i].radius >= screenSize.height) {
+                balls[i] = balls[numberBall - 1];
                 numberBall--;
             }
         }
@@ -139,8 +148,7 @@ public class Board extends JFrame implements ActionListener {
 
     public void BallBrick() {
         for (int i=0; i<numberBall; i++) 
-        for (int j=0; j<numberBrick; j++) {
-            if (bricks[j].hp == 0) continue;
+        for (int j=numberBrick - 1; j>=0; j--) {
             if (balls[i].x + balls[i].radius < bricks[j].location.width) continue;
             if (balls[i].x - balls[i].radius > bricks[j].location.width + bricks[j].size.width) continue;
             if (balls[i].y + balls[i].radius < bricks[j].location.height) continue;
@@ -160,69 +168,96 @@ public class Board extends JFrame implements ActionListener {
             }
 
             bricks[j].hp--;
+            if (bricks[j].hp == 0) {
+                if (bricks[j].item != 0) {
+                    items[numberItem++] = new Item();
+                    items[numberItem-1].location.width = bricks[j].location.width + bricks[j].size.width / 2;
+                    items[numberItem-1].location.height = bricks[j].location.height + bricks[j].size.height / 2;
+                    items[numberItem-1].type = bricks[j].item;
+                }
+                bricks[j] = bricks[numberBrick - 1];
+                numberBrick--;
+            }
+        }
+    }
+
+    public void ItemPlayer() {
+        for (int i=numberItem - 1; i>=0; i--) {
+            if (items[i].location.width + items[i].size.width < player.location.width) continue;
+            if (items[i].location.width > player.location.width + player.size.width) continue;
+            if (items[i].location.height + items[i].size.height < player.location.height) continue;
+            if (items[i].location.height > player.location.height + player.size.height) continue;
+            if (items[i].type == 4) {
+                haveGun = 1;
+            }
+            items[i].type = 0;
+            // items[i] = items[numberItem - 1];
+            // numberItem--;
+            // System.out.println(numberItem);
         }
     }
 
     public void checkContact() {
-        if(Death()) {
+        if (numberBall == 0) {
             reset();
+            lives--;
             isPause = 1;
             return;
         }
-        BallFall();
+        BallOut();
         BallWall();
         BallPlayer();
         BallBrick();
+        ItemPlayer();
     }
 
-    public void ballMove() {
+    // paint all objects
+    public void paintBackground(Graphics g) {
+        g.drawImage(backgroundImage, 0, 0, this);
+    }
+
+    public void paintPlayer(Graphics g) {
+        g.drawImage(playerImage, player.location.width, player.location.height, this);
+    }
+
+    public void paintBall(Graphics g) {
         for (int i=0; i<numberBall; i++) {
-            balls[i].x += balls[i].dx;
-            balls[i].y += balls[i].dy;
+            g.drawImage(ballImage, (int)balls[i].x - balls[i].radius, (int)balls[i].y - balls[i].radius, this);
         }
     }
 
-    public void playerMove() {
-        player.location.width = Math.min(cursorLocation.width, screenSize.width - player.size.width - 10);
-    }
-
-    public void paintBackground(Graphics2D g2d) {
-        g2d.drawImage(backgroundImage, 0, 0, this);
-    }
-
-    public void paintPlayer(Graphics2D g2d) {
-        g2d.drawImage(playerImage, player.location.width, player.location.height, this);
-    }
-
-    public void paintBall(Graphics2D g2d) {
-        for (int i=0; i<numberBall; i++) {
-            g2d.drawImage(ballImage, (int)balls[i].x - balls[i].radius, (int)balls[i].y - balls[i].radius, this);
-        }
-    }
-
-    public void paintBricks(Graphics2D g2d) {
+    public void paintBricks(Graphics g) {
         for (int i=0; i<numberBrick; i++) 
             if (bricks[i].hp > 0) {
                 Brick br = bricks[i];
                 int index = (br.color - 1) * 2 + (br.hp - 1); 
-                g2d.drawImage(brickImage.get(index), br.location.width, br.location.height, this);
+                g.drawImage(brickImage.get(index), br.location.width, br.location.height, this);
             }
     }
 
-    public void paint(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g;
-
-        if (isPause == -1) {
-            playerMove();
-            ballMove();
+    public void paintItems(Graphics g) {
+        for (int i=0; i<numberItem; i++) if (items[i].type != 0) {
+            Item it = items[i];
+            g.drawImage(itemImage.get(it.type - 1), it.location.width, it.location.height, this);
         }
+    }
 
-        checkContact();
+    public void paintAll(Graphics g) {
+        paintBackground(g);
+        paintPlayer(g);
+        paintBall(g);
+        paintBricks(g);
+        paintItems(g);
+    }
 
-        paintBackground(g2d);
-        paintPlayer(g2d);
-        paintBall(g2d);
-        paintBricks(g2d);
+    // game on
+    public void paint(Graphics g) {
+
+        // if (isPause == -1) moveAll();
+
+        // checkContact();
+
+        paintAll(g);
 
         if (loopMusic == 1 && music != null) {
             music.loop(Clip.LOOP_CONTINUOUSLY);
@@ -232,6 +267,18 @@ public class Board extends JFrame implements ActionListener {
         g.dispose();
     }
 
+    class ScheduleTask extends TimerTask {
+
+        public void run() {
+
+            if (isPause == -1) moveAll();
+            checkContact();
+            repaint();
+
+        }
+    }
+
+    // listener
     class TKeyboardAdapter extends KeyAdapter {
         public void keyPressed(KeyEvent e) {
             int key = e.getKeyCode();
@@ -244,7 +291,6 @@ public class Board extends JFrame implements ActionListener {
         public void mouseClicked() {
         }
     }
-
     class TMouseMotionAdapter extends MouseAdapter {
         public void mouseMoved(MouseEvent e) {
             cursorLocation.width = e.getX();
@@ -252,6 +298,7 @@ public class Board extends JFrame implements ActionListener {
         }
     }
 
+    // setup
     public void getImages() {
         backgroundImage = new ImageIcon("image/background.png").getImage();
         playerImage = new ImageIcon("image/player.png").getImage();
@@ -259,6 +306,21 @@ public class Board extends JFrame implements ActionListener {
         for (int i=1; i<=5; i++)
         for (int j=1; j<=2; j++) {
             brickImage.add(new ImageIcon("image/brick"+i+"_"+j+".png").getImage());
+        }
+        for (int i=1; i<=4; i++) {
+            itemImage.add(new ImageIcon("image/item"+i+".png").getImage());
+        }
+    }
+
+    public void getMusic() {
+        try {
+            File file = new File("sound/sound.wav");
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+            music = AudioSystem.getClip();
+            music.open(audioStream);
+        } catch (Exception e) {
+            System.out.println("Error with playing sound.");
+            e.printStackTrace();
         }
     }
 
@@ -301,10 +363,19 @@ public class Board extends JFrame implements ActionListener {
         }
 
         numberBrick = indexBrick;
+
+        for (int i=1; i<=4; i++) 
+        for (int j=1; j<=2; j++) {
+            while (true) {
+                indexBrick = (int)Math.floor(Math.random() * (numberBrick - 1));
+                if (bricks[indexBrick].item == 0) break;
+            }
+            bricks[indexBrick].item = i;
+        }
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        repaint();
-    }
+    // @Override
+    // public void actionPerformed(ActionEvent e) {
+    //     repaint();
+    // }
 }

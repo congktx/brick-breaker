@@ -7,6 +7,7 @@ public class Brick {
     Dimension size = new Dimension(60, 32);
     int hp = 2;
     int color = 1;
+    int item = 0;
 
     public Brick() {}
 }
