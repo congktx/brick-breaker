@@ -18,7 +18,7 @@ public class App extends JFrame {
         setResizable(RESIZABLE);
         setVisible(true);
     }
-// dau buoi long
+
     public static void main(String[] args) {
         new App();
     }
