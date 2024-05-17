@@ -6,4 +6,14 @@ public class Ball {
 
     public Ball() {
     }
+
+    public void setDXY(double dx, double dy) {
+        this.dx = dx;
+        this.dy = dy;
+    }
+
+    public void setXY(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
 }

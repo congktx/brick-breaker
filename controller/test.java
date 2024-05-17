@@ -8,7 +8,7 @@ import javax.imageio.ImageIO;
 
 public class test {
     public static void main(String[] args) {
-        readSizeImage("image/item1.png");
+        readSizeImage("image/number/2.png");
     }
 
     public static void readSizeImage(String path) {
