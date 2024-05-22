@@ -15,7 +15,7 @@ import java.io.File;
 public class LoopSound {
     public static void main(String[] args) throws Exception {
 
-        File file = new File("sound/sound.wav");
+        File file = new File("sound/bgm.wav");
         AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
         Clip clip = AudioSystem.getClip();
         clip.open(audioStream);
@@ -33,7 +33,7 @@ public class LoopSound {
 
         String response = "";
 
-        while (!response.equals("Q")) {
+        while (!response.equals("!")) {
             System.out.println("P = play, L = Loop,S = Stop, R = Reset, Q = Quit");
             System.out.print("Enter your choice: ");
 
@@ -55,7 +55,7 @@ public class LoopSound {
                     break;
                 case ("Q"):
                     clip.close();
-                    break;
+                    // break;
                 default:
                     System.out.println("Not a valid response");
             }
