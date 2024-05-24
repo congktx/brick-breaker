@@ -41,8 +41,8 @@ public class Board extends JPanel {
     Bullet[] bullets = new Bullet[NumberOfTurn * 2];
     int numberBullet;
 
-    int haveGun, longPlayer, lives, mapIndex;
-    int isHomePage = 1, isPlaying = 0, pauseAfterBallZero = 0, isSetting = 0, isGameOver = 0;
+    int haveGun, longPlayer, lives = 0, score = 0, high_score = 0, mapIndex;
+    int isHomePage = 1, isPlaying = 0, pauseAfterBallZero = 0, isSetting = 0;
 
     Image startButton, settingButton, pauseButton, scrollButton, scrollBar, homeButton, playButton, restartButton;
     Dimension startButtonLocation = new Dimension(360, 400);
@@ -50,7 +50,7 @@ public class Board extends JPanel {
     Dimension settingButtonLocation = new Dimension(360, 470);
     Dimension settingButtonSize = new Dimension(226, 63);
 
-    Image HomePageImage, SettingPageImage, backgroundImage;
+    Image HomePageImage, SettingPageImage, ResultPageImage, backgroundImage;
     Image heartImage, xImage, wallLeftImage, wallRightImage, headPlayerImage, bodyPlayerImage, tailPlayerImage, ballImage, gunImage, bulletImage;
     Image[] numbersImage = new Image[11];
     ArrayList<Image> brickImage = new ArrayList<Image>();
@@ -79,7 +79,7 @@ public class Board extends JPanel {
 
     //reset
     public void resetNewGame() {
-        lives = 3;
+        lives = 3; score = 0;
         longPlayer = haveGun = numberBall = numberBrick = numberItem = numberBullet = 0;
         resetBallPlayer();
         mapIndex = 1;
@@ -163,6 +163,23 @@ public class Board extends JPanel {
                     isSetting = 1;
                     return;
                 }
+
+                return;
+            }
+            if (lives == 0) {
+                if (350 <= e.getX() && e.getX() <= 350 + 119)
+                if (350 <= e.getY() && e.getY() <= 350 + 119) {
+                    timeButtonSound = timeSoundDefault;
+                    isHomePage = 1;
+                    return;
+                }
+                if (500 <= e.getX() && e.getX() <= 500 + 119)
+                if (350 <= e.getY() && e.getY() <= 350 + 119) {
+                    timeButtonSound = timeSoundDefault;
+                    resetNewGame();
+                    return;
+                }
+                return;
             }
             if (isPlaying == 1)
             { 
@@ -381,6 +398,17 @@ public class Board extends JPanel {
         }
     }
 
+    public void paintScore(Graphics g, int score, int x, int y) {
+        int scs = (int) Math.log10(score);
+        x = (int) ((double)x + (double)(scs*numberSize.width)/2); 
+        if (score == 0) g.drawImage(numbersImage[0], x - numberSize.width, y, this);
+        while (score > 0) {
+            g.drawImage(numbersImage[score % 10], x - numberSize.width, y, this);
+            x -= numberSize.width;
+            score /= 10;
+        }
+    }
+
     public void paintAll(Graphics g) {
         paintBackground(g);
         if (isSetting == 1) {
@@ -408,6 +436,15 @@ public class Board extends JPanel {
             g.drawImage(HomePageImage, 0, 0, this);
             g.drawImage(startButton, startButtonLocation.width, startButtonLocation.height, this);
             g.drawImage(settingButton, settingButtonLocation.width, settingButtonLocation.height, this);
+            return;
+        }
+        if (lives == 0) {
+            g.drawImage(ResultPageImage, 80, 160, this);
+            g.drawImage(homeButton, 350, 350, this);
+            g.drawImage(restartButton, 500, 350, this);
+            paintScore(g, score, 290, 250);
+            paintScore(g, high_score, 700, 250);
+            return;
         }
         if (isPlaying == 1)
         {
@@ -419,6 +456,7 @@ public class Board extends JPanel {
             paintBullets(g);
             paintGun(g);
             paintLives(g);
+            paintScore(g, score, 480, 10);
             g.drawImage(pauseButton, wallSize.width + 5, 5, this);
         }
     }
@@ -510,6 +548,9 @@ public class Board extends JPanel {
                 }
                 bricks[j] = bricks[numberBrick - 1];
                 numberBrick--;
+
+                score += 1;
+                high_score = Math.max(high_score, score);
             }
 
             timeBallSound = timeSoundDefault;
@@ -644,6 +685,8 @@ public class Board extends JPanel {
         HomePageImage = new ImageIcon("image/home-page.png").getImage();
 
         SettingPageImage = new ImageIcon("image/setting-page.png").getImage();
+
+        ResultPageImage = new ImageIcon("image/result-page.png").getImage();
 
         backgroundImage = new ImageIcon("image/background.png").getImage();
 
