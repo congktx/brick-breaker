@@ -59,7 +59,7 @@ public class Board extends JPanel {
     Clip bgmSound, ballSound, buttonSound, fireSound, itemSound;
     FloatControl bgmControl, ballControl, buttonControl, fireControl, itemControl;
     int timeBallSound = 0, timeButtonSound = 0, timeFireSound = 0, timeItemSound = 0;
-    int timeSoundDefault = 5;
+    int timeBallSoundDefault = 156, timeButtonSoundDefault = 312, timeFireSoundDefault = 240, timeItemSoundDefault = 864;
     float minVolume = -24, maxVolume = 6;
     float musicVolume = 6, gameVolume = 6;
 
@@ -105,7 +105,7 @@ public class Board extends JPanel {
         mapIndex++;
         setupMap();
         resetBallPlayer();
-        numberItem = 0;
+        longPlayer = haveGun = numberBullet = numberItem = 0;
     }
 
     // listener
@@ -117,7 +117,7 @@ public class Board extends JPanel {
                 if (isHomePage == 1) {
                     if (420 <= e.getX() && e.getX() <= 420 + 119)
                     if (350 <= e.getY() && e.getY() <= 350 + 119) {
-                        timeButtonSound = timeSoundDefault;
+                        timeButtonSound = timeButtonSoundDefault;
                         isSetting = 0;
                         return;
                     }
@@ -125,20 +125,20 @@ public class Board extends JPanel {
                 if (isPlaying == 1) {
                     if (290 <= e.getX() && e.getX() <= 290 + 119)
                     if (370 <= e.getY() && e.getY() <= 370 + 119) {
-                        timeButtonSound = timeSoundDefault;
+                        timeButtonSound = timeButtonSoundDefault;
                         isSetting = isPlaying = 0;
                         isHomePage = 1;
                         return;
                     }
                     if (410 <= e.getX() && e.getX() <= 410 + 157)
                     if (350 <= e.getY() && e.getY() <= 350 + 157) {
-                        timeButtonSound = timeSoundDefault;
+                        timeButtonSound = timeButtonSoundDefault;
                         isSetting = 0;
                         return;
                     }
                     if (568 <= e.getX() && e.getX() <= 568 + 119)
                     if (370 <= e.getY() && e.getY() <= 370 + 119) {
-                        timeButtonSound = timeSoundDefault;
+                        timeButtonSound = timeButtonSoundDefault;
                         isSetting = 0;
                         resetNewGame();
                         return;
@@ -150,7 +150,7 @@ public class Board extends JPanel {
             {
                 if (startButtonLocation.width <= e.getX() && e.getX() <= startButtonLocation.width + startButtonSize.width)
                 if (startButtonLocation.height <= e.getY() && e.getY() <= startButtonLocation.height + startButtonSize.height) {
-                    timeButtonSound = timeSoundDefault;
+                    timeButtonSound = timeButtonSoundDefault;
                     isHomePage = 0;
                     isPlaying = 1;
                     resetNewGame();
@@ -159,7 +159,7 @@ public class Board extends JPanel {
 
                 if (settingButtonLocation.width <= e.getX() && e.getX() <= settingButtonLocation.width + startButtonSize.width)
                 if (settingButtonLocation.height <= e.getY() && e.getY() <= settingButtonLocation.height + startButtonSize.height) {
-                    timeButtonSound = timeSoundDefault;
+                    timeButtonSound = timeButtonSoundDefault;
                     isSetting = 1;
                     return;
                 }
@@ -169,13 +169,13 @@ public class Board extends JPanel {
             if (lives == 0) {
                 if (350 <= e.getX() && e.getX() <= 350 + 119)
                 if (350 <= e.getY() && e.getY() <= 350 + 119) {
-                    timeButtonSound = timeSoundDefault;
+                    timeButtonSound = timeButtonSoundDefault;
                     isHomePage = 1;
                     return;
                 }
                 if (500 <= e.getX() && e.getX() <= 500 + 119)
                 if (350 <= e.getY() && e.getY() <= 350 + 119) {
-                    timeButtonSound = timeSoundDefault;
+                    timeButtonSound = timeButtonSoundDefault;
                     resetNewGame();
                     return;
                 }
@@ -185,7 +185,7 @@ public class Board extends JPanel {
             { 
                 if (wallSize.width + 5 <= e.getX() && e.getX() <= wallSize.width + 5 + 63)
                 if (5 <= e.getY() && e.getY() <= 5 + 63) {
-                    timeButtonSound = timeSoundDefault;
+                    timeButtonSound = timeButtonSoundDefault;
                     isSetting = 1;
                     return;
                 }
@@ -214,6 +214,7 @@ public class Board extends JPanel {
                     ballControl.setValue(gameVolume);
                     fireControl.setValue(gameVolume);
                     itemControl.setValue(gameVolume);
+                    buttonControl.setValue(musicVolume);
                 }
 
                 int musicVolumeLocation = (int)Math.floor((musicVolume - minVolume) * 329 / (maxVolume - minVolume));
@@ -222,8 +223,10 @@ public class Board extends JPanel {
                     musicVolume = (float)(e.getX() - 330) * (maxVolume - minVolume) / 329 + minVolume;
                     musicVolume = Math.max(minVolume, Math.min(maxVolume, musicVolume));
                     bgmControl.setValue(musicVolume);
-                    buttonControl.setValue(musicVolume);
                 }
+
+                soundStop();
+                playSound();
             }
         }
     }
@@ -231,7 +234,8 @@ public class Board extends JPanel {
     //game run
     class ScheduleTask extends TimerTask {
         public void run() {
-            if (isPlaying == 1 && pauseAfterBallZero != 1) {
+            if (lives == 0) isPlaying = 0;
+            if (isPlaying == 1 && pauseAfterBallZero != 1 && isSetting != 1 && lives > 0) {
                 moveAll();
                 checkContact();
             }
@@ -252,7 +256,7 @@ public class Board extends JPanel {
 
     public void playBallSound() {
         if (timeBallSound > 0) {
-            timeBallSound--;
+            timeBallSound -= timeDelay;
             ballSound.loop(Clip.LOOP_CONTINUOUSLY);
         }
         else {
@@ -262,7 +266,7 @@ public class Board extends JPanel {
 
     public void playFireSound() {
         if (timeFireSound > 0) {
-            timeFireSound--;
+            timeFireSound -= timeDelay;
             fireSound.loop(Clip.LOOP_CONTINUOUSLY);
         }
         else {
@@ -272,7 +276,7 @@ public class Board extends JPanel {
 
     public void playItemSound() {
         if (timeItemSound > 0) {
-            timeItemSound--;
+            timeItemSound -= timeDelay;
             itemSound.loop(Clip.LOOP_CONTINUOUSLY);
         }
         else {
@@ -282,7 +286,7 @@ public class Board extends JPanel {
 
     public void playButtonSound() {
         if (timeButtonSound > 0) {
-            timeButtonSound--;
+            timeButtonSound -= timeDelay;
             buttonSound.loop(Clip.LOOP_CONTINUOUSLY);
         }
         else {
@@ -296,6 +300,14 @@ public class Board extends JPanel {
         playFireSound();
         playItemSound();
         playButtonSound();
+    }
+
+    public void soundStop() {
+        bgmSound.stop();
+        ballSound.stop();
+        buttonSound.stop();
+        fireSound.stop();
+        itemSound.stop();
     }
 
     // move objects
@@ -489,7 +501,7 @@ public class Board extends JPanel {
                 ok = true;
             }
         }
-        if (ok) timeBallSound = timeSoundDefault;
+        if (ok) timeBallSound = timeBallSoundDefault;
     }
 
     public void BallPlayer() {
@@ -513,7 +525,7 @@ public class Board extends JPanel {
                 balls[i].setDXY(changeDX, - Math.sqrt(40 - changeDX * changeDX));
             }
 
-            timeBallSound = timeSoundDefault;
+            timeBallSound = timeBallSoundDefault;
         }
     }
 
@@ -553,7 +565,7 @@ public class Board extends JPanel {
                 high_score = Math.max(high_score, score);
             }
 
-            timeBallSound = timeSoundDefault;
+            timeBallSound = timeBallSoundDefault;
 
             break;
         }
@@ -590,7 +602,7 @@ public class Board extends JPanel {
             power(items[i].type);
             items[i] = items[numberItem - 1];
             numberItem--;
-            timeItemSound = timeSoundDefault;
+            timeItemSound = timeItemSoundDefault;
         }
     }
 
@@ -620,7 +632,7 @@ public class Board extends JPanel {
             bullet2.location.height = player.location.height - 18;
             bullets[numberBullet++] = bullet2;
 
-            timeFireSound = timeSoundDefault;
+            timeFireSound = timeFireSoundDefault;
         } 
         haveGun -= timeDelay;
     }
@@ -646,6 +658,9 @@ public class Board extends JPanel {
                 }
                 bricks[j] = bricks[numberBrick - 1];
                 numberBrick--;
+
+                score += 1;
+                high_score = Math.max(high_score, score);
             }
 
             break;
@@ -738,7 +753,7 @@ public class Board extends JPanel {
 
     public void getMusic() {
         try {
-            File file = new File("sound/bgm.wav");
+            File file = new File("sound/remix.wav");
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
             bgmSound = AudioSystem.getClip();
             bgmSound.open(audioStream);
@@ -797,56 +812,6 @@ public class Board extends JPanel {
 
         int initHeight = 80, indexBrick = 0;
 
-        // for (int i=1; i<=14; i++) {
-        //     Brick br1 = new Brick();
-        //     br1.location.width = 60 + br1.size.width * (i-1);
-        //     br1.location.height = initHeight;
-        //     br1.color = (int)(Math.random() * 4) + 1;
-        //     bricks[indexBrick++]=br1;
-
-        //     Brick br3 = new Brick();
-        //     br3.location.width = 60 + br3.size.width * (i-1);
-        //     br3.location.height = initHeight + br3.size.height * 2;
-        //     br3.color = (int)(Math.random() * 4) + 1;
-        //     bricks[indexBrick++]=br3;
-
-        //     Brick br5 = new Brick();
-        //     br5.location.width = 60 + br5.size.width * (i-1);
-        //     br5.location.height = initHeight + br5.size.height * 4;
-        //     br5.color = (int)(Math.random() * 4) + 1;
-        //     bricks[indexBrick++]=br5;
-        // }
-
-        for (int i=1; i<=13; i++) {
-            // Brick br2 = new Brick();
-            // br2.location.width = 90 + br2.size.width * (i-1);
-            // br2.location.height = initHeight + br2.size.height * 1;
-            // br2.color = (int)(Math.random() * 4) + 1;
-            // bricks[indexBrick++]=br2;
-
-            Brick br4 = new Brick();
-            br4.location.width = 90 + br4.size.width * (i-1);
-            br4.location.height = initHeight + br4.size.height * 3;
-            br4.color = (int)(Math.random() * 4) + 1;
-            bricks[indexBrick++]=br4;
-        }
-
-        numberBrick = indexBrick;
-
-        for (int i=1; i<=4; i++) 
-        for (int j=1; j<=2; j++) {
-            while (true) {
-                indexBrick = (int)Math.floor(Math.random() * (numberBrick - 1));
-                if (bricks[indexBrick].item == 0) break;
-            }
-            bricks[indexBrick].item = i;
-        }
-    }
-
-    public void setUpMap2() {
-
-        int initHeight = 80, indexBrick = 0;
-
         for (int i=1; i<=14; i++) {
             Brick br1 = new Brick();
             br1.location.width = 60 + br1.size.width * (i-1);
@@ -881,6 +846,77 @@ public class Board extends JPanel {
             bricks[indexBrick++]=br4;
         }
 
+        numberBrick = indexBrick;
+
+        for (int i=1; i<=4; i++) 
+        for (int j=1; j<=2; j++) {
+            while (true) {
+                indexBrick = (int)Math.floor(Math.random() * (numberBrick - 1));
+                if (bricks[indexBrick].item == 0) break;
+            }
+            bricks[indexBrick].item = i;
+        }
+    }
+
+    public void setUpMap2() {
+
+        int initHeight = 80, indexBrick = 0;
+
+        for (int i=1; i<=5; i++)
+        for (int j=1; j<=3; j++) {
+            Brick br1 = new Brick();
+            br1.location.width = wallSize.width + br1.size.width * (j-1);
+            br1.location.height = initHeight + br1.size.height * (i-1);
+            br1.color = 1;
+            if ((i+j) % 2 == 0) br1.hp = 2;
+            else br1.hp = 1;
+            bricks[indexBrick++]=br1;
+
+            Brick br2 = new Brick();
+            br2.location.width = screenSize.width - wallSize.width - br2.size.width * j;
+            br2.location.height = initHeight + br2.size.height * (i-1);
+            br2.color = 4;
+            if ((i+j) % 2 == 0) br2.hp = 2;
+            else br2.hp = 1;
+            bricks[indexBrick++]=br2;
+        }
+        
+        for (int i=1; i<=8; i++) {
+            Brick br1 = new Brick();
+            br1.location.width = 270;
+            br1.location.height = initHeight + br1.size.height * (i-1);
+            br1.color = 5;
+            br1.hp = 2;
+            bricks[indexBrick++]=br1;
+
+            Brick br2 = new Brick();
+            br2.location.width = 630;
+            br2.location.height = initHeight + br2.size.height * (i-1);
+            br2.color = 5;
+            br2.hp = 2;
+            bricks[indexBrick++]=br2;
+        }
+
+        for (int i=1; i<=2; i++)
+        for (int j=1; j<=5; j++) {
+            Brick br = new Brick();
+            br.location.width = 270 + br.size.width * j;
+            br.location.height = initHeight + br.size.height * (i+5);
+            br.color = 5;
+            br.hp = 2;
+            bricks[indexBrick++]=br;
+        }
+
+        for (int i=1; i<=5; i++)
+        for (int j=1; j<=3; j++) {
+            Brick br = new Brick();
+            br.location.width = 390 + br.size.width * (j-1);
+            br.location.height = initHeight + br.size.height * (i-1);
+            br.color = 2;
+            br.hp = 2;
+            bricks[indexBrick++]=br;
+        }
+        
         numberBrick = indexBrick;
 
         for (int i=1; i<=4; i++) 

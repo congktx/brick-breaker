@@ -8,29 +8,11 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
 
 public class test {
     public static void main(String[] args) {
-        // try {
-        //     File file = new File("sound/bgm.wav");
-        //     AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
-        //     Clip music = AudioSystem.getClip();
-        //     music.open(audioStream);
-        //     FloatControl volume = (FloatControl) music.getControl(FloatControl.Type.MASTER_GAIN);
-        //     volume.setValue(6);
-        //     // while (true) {
-        //     //     music.loop(Clip.LOOP_CONTINUOUSLY);
-        //     // }
-        //     // music.start();
-        //     music.loop(Clip.LOOP_CONTINUOUSLY);
-        //     while(true);
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
         // readSizeImage("image/button/play-button.png");
-        readSizeSound("sound/fire.wav");
+        readSizeSound("sound/button.wav");
     }
 
     public static void readSizeImage(String path) {
