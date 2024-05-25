@@ -44,6 +44,8 @@ public class Board extends JPanel {
     int haveGun, longPlayer, lives = 0, score = 0, high_score = 0, mapIndex;
     int isHomePage = 1, isPlaying = 0, pauseAfterBallZero = 0, isSetting = 0;
 
+    Image animeGirl1;
+
     Image startButton, settingButton, pauseButton, scrollButton, scrollBar, homeButton, playButton, restartButton;
     Dimension startButtonLocation = new Dimension(360, 400);
     Dimension startButtonSize = new Dimension(226, 63);
@@ -448,6 +450,7 @@ public class Board extends JPanel {
             g.drawImage(HomePageImage, 0, 0, this);
             g.drawImage(startButton, startButtonLocation.width, startButtonLocation.height, this);
             g.drawImage(settingButton, settingButtonLocation.width, settingButtonLocation.height, this);
+            g.drawImage(animeGirl1, 0, 0, this);
             return;
         }
         if (lives == 0) {
@@ -749,6 +752,9 @@ public class Board extends JPanel {
         playButton = new ImageIcon("image/button/play-button.png").getImage();
 
         restartButton = new ImageIcon("image/button/restart-button.png").getImage();
+
+        //anime
+        animeGirl1 = new ImageIcon("image/anime/anime-girl-1.png").getImage(); 
     }
 
     public void getMusic() {
