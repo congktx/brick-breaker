@@ -753,7 +753,7 @@ public class Board extends JPanel {
 
     public void getMusic() {
         try {
-            File file = new File("sound/remix.wav");
+            File file = new File("sound/bgm.wav");
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
             bgmSound = AudioSystem.getClip();
             bgmSound.open(audioStream);
