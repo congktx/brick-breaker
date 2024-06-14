@@ -58,8 +58,8 @@ public class Board extends JPanel {
     ArrayList<Image> brickImage = new ArrayList<Image>();
     ArrayList<Image> itemImage = new ArrayList<Image>();
 
-    Clip bgmSound, ballSound, buttonSound, fireSound, itemSound;
-    FloatControl bgmControl, ballControl, buttonControl, fireControl, itemControl;
+    Clip remixSound, bgmSound, ballSound, buttonSound, fireSound, itemSound;
+    FloatControl remixControl, bgmControl, ballControl, buttonControl, fireControl, itemControl;
     int timeBallSound = 0, timeButtonSound = 0, timeFireSound = 0, timeItemSound = 0;
     int timeBallSoundDefault = 156, timeButtonSoundDefault = 312, timeFireSoundDefault = 240, timeItemSoundDefault = 864;
     float minVolume = -24, maxVolume = 6;
@@ -250,9 +250,20 @@ public class Board extends JPanel {
     }
 
     //play sound
+    public void playRemixSound() {
+        if (remixSound != null && isHomePage == 1) {
+            remixSound.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+        else {
+            remixSound.stop();
+        }
+    }   
+
     public void playBgmSound() {
-        if (bgmSound != null) {
+        if (bgmSound != null && isHomePage == 0) {
             bgmSound.loop(Clip.LOOP_CONTINUOUSLY);
+        } else {
+            bgmSound.stop();
         }
     }
 
@@ -297,6 +308,7 @@ public class Board extends JPanel {
     }
 
     public void playSound() {
+        playRemixSound();
         playBgmSound();
         playBallSound();
         playFireSound();
@@ -768,6 +780,17 @@ public class Board extends JPanel {
             bgmSound.open(audioStream);
             bgmControl = (FloatControl) bgmSound.getControl(FloatControl.Type.MASTER_GAIN);
             bgmControl.setValue(musicVolume);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            File file = new File("sound/remix.wav");
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
+            remixSound = AudioSystem.getClip();
+            remixSound.open(audioStream);
+            remixControl = (FloatControl) remixSound.getControl(FloatControl.Type.MASTER_GAIN);
+            remixControl.setValue(musicVolume);
         } catch (Exception e) {
             e.printStackTrace();
         }
