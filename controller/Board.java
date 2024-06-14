@@ -451,6 +451,7 @@ public class Board extends JPanel {
             g.drawImage(startButton, startButtonLocation.width, startButtonLocation.height, this);
             g.drawImage(settingButton, settingButtonLocation.width, settingButtonLocation.height, this);
             g.drawImage(shigureImage, -40, 200, this);
+            g.drawImage(shigureImage, 490, 200, this);
             return;
         }
         if (lives == 0) {
@@ -761,7 +762,7 @@ public class Board extends JPanel {
 
     public void getMusic() {
         try {
-            File file = new File("sound/remix.wav");
+            File file = new File("sound/bgm.wav");
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(file);
             bgmSound = AudioSystem.getClip();
             bgmSound.open(audioStream);
